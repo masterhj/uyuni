@@ -62,7 +62,7 @@ import spark.Spark;
 import spark.TemplateViewRoute;
 import spark.template.jade.JadeTemplateEngine;
 import java.util.function.Function;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * Utility methods to integrate Spark with SUSE Manager's infrastructure.

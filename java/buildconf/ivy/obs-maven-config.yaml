@@ -236,6 +236,7 @@ artifacts:
 
   - artifact: tomcat-el-api
     package: tomcat11-el-6_0-api
+    jar: tomcat-el-6.0-api
     repository: Leap_sle
   - artifact: tomcat-jsp-api
     package: tomcat11-jsp-4_0-api
