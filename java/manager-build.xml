@@ -587,6 +587,17 @@
         </java>
     </target>
 
+    <target name="apidoc-docbook-new" description="Generate DocBook from OpenAPI spec">
+        <property name="template.dir" value="docbook"/>
+        <java classname="com.suse.manager.api.docs.OpenApiToDocBookParser" fork="true" failonerror="true">
+            <classpath>
+                <pathelement location="build/classes"/>
+                <path refid="libjars"/>
+            </classpath>
+            <sysproperty key="apidoc.output" value="${report.dir}/apidocs/${template.dir}/new/"/>
+        </java>
+    </target>
+
     <target name="apidoc-validate" description="Validate the API documentation" depends="apidoc-docbook">
         <exec executable="/usr/bin/xmllint" failonerror="true">
             <arg value="--xinclude"/>
