@@ -15,7 +15,14 @@
 package com.suse.manager.api;
 
 import com.redhat.rhn.frontend.xmlrpc.access.AccessHandler;
+import com.redhat.rhn.frontend.xmlrpc.admin.monitoring.AdminMonitoringHandler;
 import com.redhat.rhn.frontend.xmlrpc.api.ApiHandler;
+import com.redhat.rhn.frontend.xmlrpc.auth.AuthHandler;
+import com.redhat.rhn.frontend.xmlrpc.distchannel.DistChannelHandler;
+import com.redhat.rhn.frontend.xmlrpc.packages.provider.PackagesProviderHandler;
+import com.redhat.rhn.frontend.xmlrpc.preferences.locale.PreferencesLocaleHandler;
+import com.redhat.rhn.frontend.xmlrpc.saltkey.SaltKeyHandler;
+import com.redhat.rhn.frontend.xmlrpc.subscriptionmatching.PinnedSubscriptionHandler;
 
 import com.suse.manager.api.docs.UyuniSwaggerReader;
 
@@ -80,7 +87,14 @@ public class OpenApiConfig {
     private static Map<String, Class<?>> getHandlerClasses() {
         return Map.of(
             "access", AccessHandler.class,
-            "api", ApiHandler.class
+            "admin.monitoring", AdminMonitoringHandler.class,
+            "api", ApiHandler.class,
+            "auth", AuthHandler.class,
+            "distchannel", DistChannelHandler.class,
+            "packages.provider", PackagesProviderHandler.class,
+            "preferences.locale", PreferencesLocaleHandler.class,
+            "saltkey", SaltKeyHandler.class,
+            "subscriptionmatching.pinnedsubscription", PinnedSubscriptionHandler.class
         );
     }
 }

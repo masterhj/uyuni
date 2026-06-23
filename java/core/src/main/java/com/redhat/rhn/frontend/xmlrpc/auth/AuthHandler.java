@@ -41,7 +41,7 @@ import javax.security.auth.login.LoginException;
  * @apidoc.doc This namespace provides methods to authenticate with the system's
  * management server.
  */
-public class AuthHandler extends BaseHandler {
+public class AuthHandler extends BaseHandler implements AuthHandlerApi {
 
     private static Logger log = LogManager.getLogger(AuthHandler.class);
 

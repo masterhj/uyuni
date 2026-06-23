@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
  * @apidoc.namespace admin.monitoring
  * @apidoc.doc Provides methods to manage the monitoring of the #product() server.
  */
-public class AdminMonitoringHandler extends BaseHandler {
+public class AdminMonitoringHandler extends BaseHandler implements AdminMonitoringHandlerApi {
 
     private static Map<String, String> messageMap = Map.of(
             "enable", "enable_again_to_sync_config",
