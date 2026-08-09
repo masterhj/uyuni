@@ -50,14 +50,13 @@ be reachable by authoring alone:
 
 ## Phase 1 — reachable with zero architecture change
 
-Only **four** namespaces are fully clean today:
+Only **three** namespaces are reachable, and all three are now written and verified:
 
 | namespace | methods | status |
 |---|---:|---|
-| `image.profile` | 10 | verified — generated AsciiDoc identical to legacy, contract test 10/10 |
-| `image.store` | 6 | verified — generated AsciiDoc identical to legacy |
-| `kickstart.profile.software` | 6 | verified, two small fixes outstanding (see below) |
-| `kickstart.tree` | 10 | classified clean, not yet authored or verified |
+| `image.profile` | 10 | AsciiDoc identical to legacy, DocBook text identical, contract test 10/10 |
+| `image.store` | 6 | AsciiDoc identical to legacy, DocBook text identical, contract test 6/6 |
+| `kickstart.profile.software` | 6 | contract test 6/6, but **not identical** — two divergences, below |
 
 Four more namespaces classify clean but are not available:
 
@@ -66,21 +65,46 @@ Four more namespaces classify clean but are not available:
   cannot be served over HTTP. Registry-level, out of scope here.
 - `system.monitoring` (1 method) — needs a probe first, see P1 below.
 
-**This is the headline result: exhausting the current architecture yields four handlers, not
-fifty.** The remaining 51 namespaces each contain at least one shape the generator cannot yet
-reproduce. That does not change the order of work, but it does mean phase 1 is short and the
-architecture gaps are the real body of the project.
+**This is the headline result: exhausting the current architecture yields three handlers, not
+fifty.** Every other namespace contains at least one shape the generator cannot reproduce. That
+does not change the order of work, but it does mean phase 1 is essentially finished and the
+architecture gaps are the whole remaining project.
 
-### Proposed phase 1 PRs
+### Phase 1 PRs
 
-Since no handler here needs an architecture change, they can share PRs:
+- **PR A — `image.profile` + `image.store`.** Both byte-identical to legacy after normalization,
+  which is a stricter bar than the merged baseline clears: `saltkey` currently emits description
+  text the doclet never produced, and `admin.payg` renders its two `create` overload variants in
+  reversed order.
+- **PR B — `kickstart.profile.software` alone.** `kickstart.tree` was dropped, see below.
 
-- **PR A — `image.profile` + `image.store`.** Both already verified against real generated
-  files. `image.profile` is written and its contract test passes 10/10.
-- **PR B — `kickstart.profile.software` + `kickstart.tree`.** Two things to settle in
-  `kickstart.profile.software` first: an authoring typo (legacy says *"the list of package
-  names"*, the contract says *"a list of…"*), and the two `setSoftwareList` overload variants
-  currently render in reversed order versus legacy, in both the index and the body.
+`kickstart.profile.software` has two divergences in `setSoftwareList`, both unavoidable under
+the current architecture:
+
+1. The two overload variants render in reversed order versus legacy, in the index and the body.
+   Merged `admin.payg` has exactly the same divergence.
+2. Legacy uses a **different article per overload** — *"the list of package names"* on the 3-arg
+   variant and *"a list of package names"* on the 5-arg one. An additive overload is a single
+   schema property carrying a single description, so one of the two variants must differ by that
+   word. Declaring the overloads separately does not help: paths are keyed on the method name,
+   so they would overwrite each other (G3).
+
+Also worth recording: legacy declares `getSoftwareDetails` properties as `string` while the
+handler returns `Map<String, Boolean>`. The contract reproduces the documented type, so the
+contract test asserts strings.
+
+### `kickstart.tree` is blocked (correction to an earlier version of this plan)
+
+An earlier revision listed `kickstart.tree` as clean. That was a classifier bug: serializers were
+inlined *before* nesting levels were walked, which hid nested references.
+`KickstartTreeDetailSerializer` embeds `$KickstartInstallTypeSerializer` inside its struct, and
+`OpenApiToAsciidocParser.structPropertyType` (~line 405) falls back to `"string"` for `$ref`
+properties, so the nested struct is lost. That is **G9**, which is not authorable.
+
+The classifier now distinguishes a serializer nested inside a **struct** (a `$ref` property, G9)
+from one inside `#return_array_begin()` (the ordinary array-of-refs form, which renders
+correctly). It reproduces all 12 known verdicts, including the three handlers proven by
+real-file diff.
 
 ### Open probe (P1) — non-string array element types
 
@@ -120,13 +144,13 @@ path. Namespaces blocked, and what each unlocks cumulatively when applied in thi
 
 | gap | what breaks | ns blocked | cumulative clean |
 |---|---|---:|---:|
-| **G1** | int return with its own description is ignored | 17 | 9 |
-| **G6** | array property inside a struct collapses to `string` | 22 | 13 |
-| **G5** | date in a *response* property collapses to `string` | 21 | 19 |
-| **G7** | array-return item struct rendered one level too shallow | 16 | 25 |
-| **G10** | `#options()` / `#item()` blocks not rendered | 18 | 34 |
-| **G3** | alternative overloads collapse to one operation | 12 | 39 |
-| **G9** | leaf struct-typed property renders as `string` | 9 | 45 |
+| **G1** | int return with its own description is ignored | 17 | 8 |
+| **G6** | array property inside a struct collapses to `string` | 22 | 12 |
+| **G5** | date in a *response* property collapses to `string` | 21 | 18 |
+| **G7** | array-return item struct rendered one level too shallow | 16 | 23 |
+| **G10** | `#options()` / `#item()` blocks not rendered | 18 | 31 |
+| **G9** | struct-typed property renders as `string` | 13 | 38 |
+| **G3** | alternative overloads collapse to one operation | 12 | 45 |
 | **G4** | array parameter items not expanded | 8 | 50 |
 | **G8** | legacy return types with no OpenAPI counterpart | 5 | 55 |
 
@@ -165,13 +189,20 @@ are the natural last milestone rather than an early target.
 - **G6** activationkey, audit, channel.appstreams, channel.software, errata, kickstart, kickstart.filepreservation, kickstart.profile, kickstart.profile.keys, kickstart.profile.system, packages, packages.provider, recurring, sync.content, system, system.appstreams, system.provisioning.snapshot, systemgroup, user.external, user.notifications
 - **G7** actionchain, activationkey, admin.monitoring, channel, channel.org, channel.software, contentmanagement, errata, image, kickstart.keys, kickstart.profile.system, org.trusts, packages, system, user
 - **G8** ansible, channel.software, kickstart.profile, system, virtualhostmanager
-- **G9** activationkey, configchannel, formula, image, image.delta, system, system.config, systemgroup, virtualhostmanager
+- **G9** activationkey, ansible, configchannel, contentmanagement, formula, image, image.delta, kickstart.tree, maintenance, system, system.config, systemgroup, virtualhostmanager
 - **G10** activationkey, audit, channel.software, configchannel, image, kickstart.profile, kickstart.profile.keys, kickstart.profile.system, packages, recurring, recurring.custom, recurring.highstate, system, system.config, system.provisioning.snapshot, systemgroup, user
 
 ## Open question for review
 
-Phase 1 is four handlers. Everything after that requires architecture work, so the pace of the
-rest of the migration is set by how quickly the gap PRs can be reviewed and merged. Is the
-ordering in the phase 2 table the right one — G1 first because it is already written, then by
-number of namespaces unlocked — or should the largest namespaces (`system`, `channel.software`)
-drive the order instead, which would mean starting with G3?
+Phase 1 is three handlers and is already written. Everything after it requires architecture work,
+so the pace of the rest of the migration is set entirely by how quickly the gap PRs can be
+reviewed and merged. Is the ordering in the phase 2 table the right one — G1 first because it is
+already written, then by number of namespaces unlocked — or should the largest namespaces
+(`system` at 221 methods, `channel.software` at 79) drive the order instead, which would mean
+starting with G3?
+
+A second question follows from `kickstart.profile.software`: where legacy documentation is
+internally inconsistent (a different article per overload) or simply wrong about a type
+(`getSoftwareDetails` declares `string` for booleans), should the migration reproduce it exactly,
+or is correcting it acceptable? Reproducing it is what the compatibility test rewards, but it
+carries known errors forward.
