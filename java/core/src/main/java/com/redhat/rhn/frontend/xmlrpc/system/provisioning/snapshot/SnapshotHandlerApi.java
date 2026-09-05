@@ -56,8 +56,8 @@ public interface SnapshotHandlerApi {
     List<ServerSnapshot> listSnapshots(
         @Parameter(hidden = true) User loggedInUser,
         @Parameter(name = "sid", in = ParameterIn.QUERY, required = true) Integer sid,
-        @Parameter(name = "startDate", in = ParameterIn.QUERY, required = true) Date startDate,
-        @Parameter(name = "endDate", in = ParameterIn.QUERY, required = true) Date endDate);
+        @Parameter(name = "startDate", in = ParameterIn.QUERY, required = false) Date startDate,
+        @Parameter(name = "endDate", in = ParameterIn.QUERY, required = false) Date endDate);
 
     /**
      * Lists the packages associated with a snapshot.

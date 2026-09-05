@@ -223,6 +223,19 @@ public class SnapshotHandlerContractTest extends BaseOpenApiTest {
      */
 
     @Test
+    public void testListSnapshotsWithoutDates() throws Exception {
+        context.checking(new Expectations() {{
+            oneOf(handler()).listSnapshots(
+                    with(mockUser), with(SID), with(aNull(Date.class)), with(aNull(Date.class)));
+            will(returnValue(List.of(snapshot())));
+        }});
+
+        validateApiContract("/system.provisioning.snapshot/listSnapshots", "GET")
+                .withParams(Map.of("sid", new String[] {SID.toString()}))
+                .onHandlerMethod("listSnapshots", User.class, Integer.class, Date.class, Date.class);
+    }
+
+    @Test
     public void testListSnapshotPackages() throws Exception {
         context.checking(new Expectations() {{
             oneOf(handler()).listSnapshotPackages(with(mockUser), with(SNAP_ID));
